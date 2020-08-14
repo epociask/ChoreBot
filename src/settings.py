@@ -1,17 +1,15 @@
-from dotenv import load_dotenv
 import os 
 import json 
+from decouple import Config, RepositoryEnv
 
-def get_parent_dir(directory: str) -> os.path:
-    return os.path.dirname(directory)
 
-dir = get_parent_dir(os.getcwd())
-print(dir)
-load_dotenv(dotenv_path=dir)
+path = os.path.join(os.path.abspath(os.path.join(__file__ ,"../../")), "config.env")
+print("PATH", path)
+config = Config(RepositoryEnv(path))
 
-TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN")
-TWILIO_SID_TOKEN: str = os.getenv("TWILIO_SID_TOKEN")
-ROOMMATES: str = os.getenv("ROOMMATES")
+TWILIO_AUTH_TOKEN: str = config("TWILIO_AUTH_TOKEN")
+TWILIO_SID_TOKEN: str = config("TWILIO_SID_TOKEN")
+ROOMMATES: str = config("ROOMMATES")
 try:
 	ROOMMATES: dict = json.loads(ROOMMATES)
 
