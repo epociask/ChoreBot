@@ -8,6 +8,7 @@ import random
 client = Client(settings.TWILIO_SID_TOKEN, settings.TWILIO_AUTH_TOKEN)
 roommates: dict = settings.ROOMMATES
 yesterdays_assignments: dict = None 
+completed: dict = {}
 odd_week: bool = True 
 chore_struct: dict = {}
 
@@ -26,8 +27,8 @@ def run() -> None:
 
 
         if now.minute == 8: #time to assign chores 
-           assigned = generateChoreAssignments()
-            
+            assigned = generateChoreAssignments()
+            writeChores(assigned)
 
 
         if now.minute == 0 and(now.hour == 12 or now.hour == 20) and hasUpdated is False:
@@ -55,11 +56,11 @@ def getTodaysChores(dayOfWeek: int) -> list:
     global chore_struct
     chores_to_do: dict = []
     chores_to_do.append(chore_struct['daily'])
-    del chore_struct['daily']
     for key in chore_struct.keys():
-        for task_key in chore_struct[key].keys():
-            if chore_struct[key][task_key] == dayOfWeek:
-                chores_to_do.append(task_key)
+        if key != 'daily':
+            for task_key in chore_struct[key].keys():
+                if chore_struct[key][task_key] == dayOfWeek:
+                    chores_to_do.append(task_key)
 
 
     return chores_to_do
@@ -76,7 +77,7 @@ def getChoresFromFile() -> dict:
 
 
 def writeChores(chores: dict) -> None:
-    with open("assigned_chores.json", "w") as fr:
+    with open("chores.json", "w") as fr:
         json.dump(fr, chores)
 
 def generateChoreAssignments() -> dict:
@@ -84,10 +85,12 @@ def generateChoreAssignments() -> dict:
     names = [e for e in roommates.keys()]
     for name in names:
         assigned_chores[name] = []
-    passed_down: list = []
 
     dayOfWeek: int = datetime.datetime.today().weekday()
     todays_chores: list = getTodaysChores(dayOfWeek)
+    global completed
+    completed = {chore:False for chore in todays_chores}
+    print(completed)
     random.shuffle(todays_chores)
     yesterdays_assignments = getChoresFromFile()
     min_num = len(todays_chores) // len(names)
@@ -102,8 +105,6 @@ def generateChoreAssignments() -> dict:
                             assigned_chores[name].append(chore)
                             todays_chores.remove(chore)
 
-
-        
     return assigned_chores
 
 
@@ -111,9 +112,16 @@ def generateChoreAssignments() -> dict:
 def buildAssignmentString(assigments: dict) -> str:
 
     def buildChoreString(name: str, chore_list: str) -> str:
-        string_list = "\n-".join(item.title() for item in chore_list)
+        global completed
+        string_list = "\n-".join(f"{item.title()} -> {getCompletedEmoji(completed[item])}" for item in chore_list) 
         return f"\n{name}: \n-{string_list}"
     
     return "\n".join(buildChoreString(name, chore_list) for name, chore_list in assigments.items())
 
 
+
+
+def getCompletedEmoji(isDone: bool) -> str:
+    return "✅" if isDone else "☐"
+
+sendTextUpdates(generateChoreAssignments())
