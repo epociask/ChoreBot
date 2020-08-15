@@ -26,7 +26,7 @@ def run() -> None:
         now = datetime.datetime.now()
 
 
-        if now.minute == 8: #time to assign chores 
+        if now.hour == 8: #time to assign chores 
             assigned = generateChoreAssignments()
             writeChores(assigned)
 
