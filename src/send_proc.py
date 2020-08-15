@@ -1,15 +1,40 @@
-# Download the helper library from https://www.twilio.com/docs/python/install
 from twilio.rest import Client
+import settings 
 import os 
+import datetime
 
-# Your Account Sid and Auth Token from twilio.com/console
-# DANGER! This is insecure. See http://twil.io/secure
-account_sid = os.environ.get("TWILIO_SID")
-auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
-client = Client(account_sid, auth_token)
+client = Client(settings.TWILIO_SID_TOKEN, settings.TWILIO_AUTH_TOKEN)
+roommates = settings.ROOMMATES
 
-message = client.messages.create(
-                              body='Welcome from the 2071 Chore Bot you filthy fuck',
-                              from_='+17692248010',
-                              to='+18454440118'
-                          )
+
+def run() -> None:
+
+    while True:
+        now = datetime.datetime.now()
+
+
+        if now.minute == 8: #time to assign chores 
+            #call assign chores function 
+
+
+        if now.minute == 0 and(now.hour == 12 or now.hour == 20) and hasUpdated is False:
+            hasUpdated = True 
+
+        if now.minute != 0 and hasUpdated:
+            hasUpdated = False 
+
+
+
+
+def sendTextUpdates(assigned_chores: str) -> None:
+    global roommates
+    for name in roommates.keys():
+        message = client.messages.create(
+                                    body=name,
+                                    from_=settings.TWILIO_NUMBER,
+                                    to=roommates[name],
+                                )
+
+
+
+# sendUpdates()

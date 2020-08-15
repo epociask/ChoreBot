@@ -9,6 +9,7 @@ config = Config(RepositoryEnv(path))
 
 TWILIO_AUTH_TOKEN: str = config("TWILIO_AUTH_TOKEN")
 TWILIO_SID_TOKEN: str = config("TWILIO_SID_TOKEN")
+TWILIO_NUMBER: str = config("TWILIO_NUMBER")
 ROOMMATES: str = config("ROOMMATES")
 try:
 	ROOMMATES: dict = json.loads(ROOMMATES)
