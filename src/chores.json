@@ -1,31 +1,20 @@
 {
     "daily": "dishes",
     
-    "weekly": {"trash": 1, "vacuum hallways & living room": 5, "sweep and clean kitchen floors": 5, "wipe down kitcken counters": 5},
+    "weekly": 
+    {
+        "trash": 1,
+        "vacuum hallways & living room": 5, 
+        "sweep and clean kitchen floors": 5,
+        "wipe down kitcken counters": 5
+    },
 
-    "biweekly": {
+    "biweekly": 
+    {
+        "Sim's bathroom":6, 
+        "Half bathroom":6, 
+        "Master bathroom":6,
+        "Kitchen stove": 6
+    }
 
-        "Sim's bathroom":{
-            "shower": 6, 
-            "floor": 6, 
-            "toilet": 6, 
-            "sink": 6
-        }, 
-
-        "Half bathroom":{
-            "floor": 6, 
-            "toilet": 6
-            }, 
-
-        "Master bathroom":{
-            "shower/tub": 6, 
-            "floor": 6, 
-            "toilet": 6, 
-            "sink": 6
-            }
-        },
-
-        "Kitchen":{
-            "stove": 6
-        }
 } 

@@ -12,7 +12,7 @@ completed: dict = {}
 odd_week: bool = True 
 chore_struct: dict = {}
 
-
+#TODO add local file caching for previous assignments to ensure no person is given same chore twice 
 with open("chores.json") as fr:
     chore_struct = json.load(fr)
 
@@ -28,7 +28,7 @@ def run() -> None:
 
         if now.hour == 8: #time to assign chores 
             assigned = generateChoreAssignments()
-            writeChores(assigned)
+            writeToJSON(assigned)
 
 
         if now.minute == 0 and(now.hour == 12 or now.hour == 20) and hasUpdated is False:
@@ -40,7 +40,7 @@ def run() -> None:
 
 
 
-def sendTextUpdates(assigned_chores: dict) -> None:
+def sendAssignedChoresSMS(assigned_chores: dict) -> None:
     global roommates
     chores_string = buildAssignmentString(assigned_chores)
     for name in roommates.keys():
@@ -75,27 +75,51 @@ def getChoresFromFile() -> dict:
         except Exception:
             return None 
 
+def assignUID(vals: list) -> int:
+    if (x := random.randint(1, 100)) not in vals:
+        return x 
 
-def writeChores(chores: dict) -> None:
-    with open("chores.json", "w") as fr:
-        json.dump(fr, chores)
+    return assignUID(vals)
+
+
+
+
+def writeToJSON(data_struct: dict, fileName="assigned_chores.json") -> None:
+    with open(fileName, "w") as fr:
+        json.dump(data_struct, fr)
+
+
+def buildCompletedStruct(todays_chores: dict) -> dict: 
+
+
+    completed: dict = {chore:[False] for chore in todays_chores}
+    unique_vals: list = []
+    for chore_key in completed.keys():
+        completed[chore_key].append(assignUID(unique_vals))
+        completed[chore_key].append([])
+
+    return completed
 
 def generateChoreAssignments() -> dict:
+    global completed
+    global roommates
     assigned_chores: dict = {}
-    names = [e for e in roommates.keys()]
+    todays_chores: list = getTodaysChores(datetime.datetime.today().weekday())
+    names: list = [e for e in roommates.keys()]
+
+    min_num: int = len(todays_chores) // len(names)
+    remainder: int = len(todays_chores) % len(names)
+
     for name in names:
         assigned_chores[name] = []
 
-    dayOfWeek: int = datetime.datetime.today().weekday()
-    todays_chores: list = getTodaysChores(dayOfWeek)
-    global completed
-    completed = {chore:False for chore in todays_chores}
-    print(completed)
+
+    writeToJSON(completed, fileName="completed.json")
     random.shuffle(todays_chores)
     yesterdays_assignments = getChoresFromFile()
-    min_num = len(todays_chores) // len(names)
-
-    while len(todays_chores) > 0:
+  
+    print(remainder)
+    while len(todays_chores) > 0:  #assignment algo hehehe
         for chore in todays_chores:
             random.shuffle(names)
             for name in names:                    
@@ -105,6 +129,16 @@ def generateChoreAssignments() -> dict:
                             assigned_chores[name].append(chore)
                             todays_chores.remove(chore)
 
+
+                        elif len(assigned_chores) <= remainder + 1:
+                            det: int = random.randint(0,3)
+                            if det != 1:
+                                continue
+
+                            else:
+                                assigned_chores[name].append(chore)
+                                todays_chores.remove(chore)
+
     return assigned_chores
 
 
@@ -113,7 +147,8 @@ def buildAssignmentString(assigments: dict) -> str:
 
     def buildChoreString(name: str, chore_list: str) -> str:
         global completed
-        string_list = "\n-".join(f"{item.title()} -> {getCompletedEmoji(completed[item])}" for item in chore_list) 
+        print(completed)
+        string_list = "\n-".join(f"{completed[item][1]}-- {item.title()} -> {getCompletedEmoji(completed[item][0])}" for item in chore_list) 
         return f"\n{name}: \n-{string_list}"
     
     return "\n".join(buildChoreString(name, chore_list) for name, chore_list in assigments.items())
@@ -124,4 +159,3 @@ def buildAssignmentString(assigments: dict) -> str:
 def getCompletedEmoji(isDone: bool) -> str:
     return "✅" if isDone else "☐"
 
-sendTextUpdates(generateChoreAssignments())
