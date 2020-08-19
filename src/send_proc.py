@@ -42,7 +42,8 @@ def run() -> None:
 
 def sendAssignedChoresSMS(assigned_chores: dict) -> None:
     global roommates
-    chores_string = buildAssignmentString(assigned_chores)
+    global completed
+    chores_string = buildAssignmentString(assigned_chores, completed)
     for name in roommates.keys():
         message = client.messages.create(
                                     body=f"Today's chore assignment is as follows: \n{chores_string}",
@@ -113,12 +114,13 @@ def generateChoreAssignments() -> dict:
     for name in names:
         assigned_chores[name] = []
 
+    completed = buildCompletedStruct(todays_chores)
 
     writeToJSON(completed, fileName="completed.json")
     random.shuffle(todays_chores)
     yesterdays_assignments = getChoresFromFile()
-  
     print(remainder)
+    print(yesterdays_assignments)
     while len(todays_chores) > 0:  #assignment algo hehehe
         for chore in todays_chores:
             random.shuffle(names)
@@ -130,27 +132,33 @@ def generateChoreAssignments() -> dict:
                             todays_chores.remove(chore)
 
 
-                        elif len(assigned_chores) <= remainder + 1:
-                            det: int = random.randint(0,3)
-                            if det != 1:
+                        elif len(todays_chores) <= remainder + 1:
+                            if random.randint(0,3) != 1:
                                 continue
 
                             else:
                                 assigned_chores[name].append(chore)
                                 todays_chores.remove(chore)
+    print(assigned_chores)
 
+    print(completed)
+    writeToJSON(completed, fileName="completed.json")
+    writeToJSON(assigned_chores)
     return assigned_chores
 
 
 
-def buildAssignmentString(assigments: dict) -> str:
-
+def buildAssignmentString(assigments: dict, completed: dict) -> str:
+    print("adsfadsf", assigments)
     def buildChoreString(name: str, chore_list: str) -> str:
-        global completed
-        print(completed)
+        print("completed", completed)
+        for item in chore_list:
+            print(item)
         string_list = "\n-".join(f"{completed[item][1]}-- {item.title()} -> {getCompletedEmoji(completed[item][0])}" for item in chore_list) 
+        print("worthy list, ", string_list)
+        print(chore_list)
         return f"\n{name}: \n-{string_list}"
-    
+
     return "\n".join(buildChoreString(name, chore_list) for name, chore_list in assigments.items())
 
 
@@ -159,3 +167,6 @@ def buildAssignmentString(assigments: dict) -> str:
 def getCompletedEmoji(isDone: bool) -> str:
     return "✅" if isDone else "☐"
 
+
+todays = generateChoreAssignments()
+sendAssignedChoresSMS(todays)

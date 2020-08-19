@@ -12,7 +12,8 @@ TWILIO_SID_TOKEN: str = config("TWILIO_SID_TOKEN")
 TWILIO_NUMBER: str = config("TWILIO_NUMBER")
 ROOMMATES: str = config("ROOMMATES")
 try:
-	ROOMMATES: dict = json.loads(ROOMMATES)
+	ROOMMATES: dict = {k.lower(): v for k,v in json.loads(ROOMMATES).items()}
+
 
 except Exception as e:
 	print("Please make sure that the roommates environmental variable in config.env is of dictionary JSON type")
