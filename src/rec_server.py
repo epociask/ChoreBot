@@ -1,27 +1,24 @@
 from flask import Flask, request
+from twilio.twiml.messaging_response import MessagingResponse
 import requests
 import settings 
-import send_proc
-from twilio.twiml.messaging_response import MessagingResponse
 import json 
+import utils
 
 app = Flask(__name__)
  
 
-def readStructFromJSON(fileName: str) -> dict:
-    with open(fileName, "r") as fr:
-        return json.load(fr)
 
-assigned: dict = readStructFromJSON("assigned_chores.json")
-completed: dict = readStructFromJSON("completed.json")
+assigned: dict = utils.readStructFromJSON("assigned_chores.json")
+completed: dict = utils.readStructFromJSON("completed.json")
 
 @app.route('/', methods=['POST'])
 def handleText():
-    incoming_msg = request.values.get('Body', '').lower()
+    incoming_msg = request.values.get('Body', '').lower().strip()
     resp = MessagingResponse()
     from_number = request.form['From']
     msg = resp.message()
-    msg.body(deceipherMessage(incoming_msg))
+    msg.body(deceipherMessage(incoming_msg, from_number))
     return str(resp)
 
 def findName(phone_number: str) -> str:
@@ -33,21 +30,25 @@ def findName(phone_number: str) -> str:
 
 def updateStructs(chore: str, name: str) -> str:
     global completed
+    global assigned
     names_updated_list: list = completed[chore][2]
 
     if name in names_updated_list:
         return "Sorry, it appears that you've already said that chore is completed"
+
+    if chore in assigned[name]:
+        return "Sorry, it appears that you are trying to validate your own chore ;)"    
 
 
     names_updated_list.append(name)
     
     if len(names_updated_list) == len(settings.ROOMMATES)-1:
         completed[chore][0] = True 
-        send_proc.writeToJSON(completed, fileName="completed.json")
+        utils.writeToJSON(completed, fileName="completed.json")
 
     return None
 
-def deceipherMessage(message: str) -> str: 
+def deceipherMessage(message: str, phone_number: str) -> str: 
     global completed
     global assigned
     msg_list: list  = message.split(" ")
@@ -59,22 +60,19 @@ def deceipherMessage(message: str) -> str:
     except Exception:
         return "Chore ID is either not supplied or invalid"
         
-    print(msg_list)
-    print("Name", name)
-    print("Chore ID", chore_id)
     if name not in settings.ROOMMATES.keys():
         supported = ", ".join(e for e in settings.ROOMMATES.keys())
         return f"Invalid roommate name supplied... supported names are {supported}"
 
     for key, val in completed.items(): #basic verif
-        #TODO verify that name claiming chore completion isn't assigned to that ID
         if val[1] == int(chore_id):
             if key in assigned[name]:
-                if (err := updateStructs(key, findName(name))) !=  None:
+                print("name", name)
+                if (err := updateStructs(key, findName(phone_number))) !=  None:
                     return err
 
                 else:
-                    return send_proc.buildAssignmentString(assigned, completed)
+                    return utils.buildAssignmentString(assigned, completed)
 
 
             else:
@@ -89,4 +87,4 @@ def deceipherMessage(message: str) -> str:
     
 
 if __name__ == "__main__":
-	app.run(debug=True)
+	app.run()

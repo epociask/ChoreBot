@@ -11,6 +11,7 @@ TWILIO_AUTH_TOKEN: str = config("TWILIO_AUTH_TOKEN")
 TWILIO_SID_TOKEN: str = config("TWILIO_SID_TOKEN")
 TWILIO_NUMBER: str = config("TWILIO_NUMBER")
 ROOMMATES: str = config("ROOMMATES")
+
 try:
 	ROOMMATES: dict = {k.lower(): v for k,v in json.loads(ROOMMATES).items()}
 

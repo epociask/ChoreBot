@@ -3,39 +3,80 @@ import settings
 import os 
 import json 
 import datetime
+import utils
 import random 
 
 client = Client(settings.TWILIO_SID_TOKEN, settings.TWILIO_AUTH_TOKEN)
 roommates: dict = settings.ROOMMATES
-yesterdays_assignments: dict = None 
-completed: dict = {}
+yesterdays_assignments = completed =  chore_struct = assigned = {}
 odd_week: bool = True 
-chore_struct: dict = {}
 
 #TODO add local file caching for previous assignments to ensure no person is given same chore twice 
-with open("chores.json") as fr:
-    chore_struct = json.load(fr)
+chore_struct = utils.readStructFromJSON("chores.json")
 
-
-
-print(chore_struct)
 
 def run() -> None:
-    hasUpdated: bool = False 
+    hasUpdated = notCompleted = False 
+    violationSent = True
+    notCompleted = True
+    isViolationTime = lambda time: time == 0 or time % 15 == 0 or time % 30 == 0 or time % 45 == 0
+
     while True:
         now = datetime.datetime.now()
 
 
-        if now.hour == 8: #time to assign chores 
+        if now.hour == 8 and now.minute == 0 and hasUpdated is False: #time to build & assign today's chores 
+            hasUpdated, notCompleted = True, True 
+            global assigned
             assigned = generateChoreAssignments()
-            writeToJSON(assigned)
-
-
-        if now.minute == 0 and(now.hour == 12 or now.hour == 20) and hasUpdated is False:
-            hasUpdated = True 
-
-        if now.minute != 0 and hasUpdated:
             hasUpdated = False 
+
+        if not isViolationTime(now.minute):
+            violationSent = False 
+
+        if notCompleted is True and isViolationTime(now.minute) and violationSent is False:
+            lazies = getLazyRoommates()
+            violationSent = True 
+
+            if len(lazies) == 0:
+                notCompleted = False 
+
+            else:
+                punish(lazies)
+
+
+
+
+
+def getLazyRoommates() -> list:
+    completes: dict = utils.readStructFromJSON("completed.json")
+    lazy_roommates: list = []
+    times: int = 5 
+
+    while (times:= times - 1) != 0: #Spams roommates five times 
+        for key in completes.keys():
+            if completes[key][0] is False:
+                lazy_roommates.append(getNameForChore(key))
+
+
+    return lazy_roommates
+
+
+def punish(lazy_roomates: list) -> None:
+
+    for name in lazy_roomates:
+        client.messages.create(
+                            body=f"DO YOUR CHORES {name}" + "!"*13,
+                            from_=settings.TWILIO_NUMBER,
+                            to=roommates[name],
+                        )
+
+def getNameForChore(chore: str):
+    assigned: dict = utils.readStructFromJSON("assigned_chores.json")
+    for name in assigned.keys():
+        if chore in assigned[name]:
+            return name 
+
 
 
 
@@ -43,7 +84,7 @@ def run() -> None:
 def sendAssignedChoresSMS(assigned_chores: dict) -> None:
     global roommates
     global completed
-    chores_string = buildAssignmentString(assigned_chores, completed)
+    chores_string = utils.buildAssignmentString(assigned_chores, completed)
     for name in roommates.keys():
         message = client.messages.create(
                                     body=f"Today's chore assignment is as follows: \n{chores_string}",
@@ -67,60 +108,30 @@ def getTodaysChores(dayOfWeek: int) -> list:
     return chores_to_do
 
 
-def getChoresFromFile() -> dict:
-    with open("assigned_chores.json") as fr:
-
-        try:
-            return json.load(fr)
-
-        except Exception:
-            return None 
-
 def assignUID(vals: list) -> int:
-    if (x := random.randint(1, 100)) not in vals:
-        return x 
-
-    return assignUID(vals)
-
-
-
-
-def writeToJSON(data_struct: dict, fileName="assigned_chores.json") -> None:
-    with open(fileName, "w") as fr:
-        json.dump(data_struct, fr)
-
+    x: int = random.randint(1, 100)
+    return x if x not in vals else assignUID(vals)
 
 def buildCompletedStruct(todays_chores: dict) -> dict: 
-
-
-    completed: dict = {chore:[False] for chore in todays_chores}
-    unique_vals: list = []
-    for chore_key in completed.keys():
-        completed[chore_key].append(assignUID(unique_vals))
-        completed[chore_key].append([])
-
-    return completed
+    return {chore:[False, assignUID([]), []] for chore in todays_chores}
 
 def generateChoreAssignments() -> dict:
     global completed
     global roommates
-    assigned_chores: dict = {}
     todays_chores: list = getTodaysChores(datetime.datetime.today().weekday())
     names: list = [e for e in roommates.keys()]
 
     min_num: int = len(todays_chores) // len(names)
     remainder: int = len(todays_chores) % len(names)
 
-    for name in names:
-        assigned_chores[name] = []
+    assigned_chores: dict = {name: [] for name in names}
 
     completed = buildCompletedStruct(todays_chores)
 
-    writeToJSON(completed, fileName="completed.json")
+    utils.writeToJSON(completed, fileName="completed.json")
     random.shuffle(todays_chores)
-    yesterdays_assignments = getChoresFromFile()
-    print(remainder)
-    print(yesterdays_assignments)
+    yesterdays_assignments = utils.readStructFromJSON("assigned_chores.json")
+
     while len(todays_chores) > 0:  #assignment algo hehehe
         for chore in todays_chores:
             random.shuffle(names)
@@ -139,34 +150,13 @@ def generateChoreAssignments() -> dict:
                             else:
                                 assigned_chores[name].append(chore)
                                 todays_chores.remove(chore)
-    print(assigned_chores)
 
-    print(completed)
-    writeToJSON(completed, fileName="completed.json")
-    writeToJSON(assigned_chores)
+    utils.writeToJSON(completed, fileName="completed.json")
+    utils.writeToJSON(assigned_chores)
     return assigned_chores
-
-
-
-def buildAssignmentString(assigments: dict, completed: dict) -> str:
-    print("adsfadsf", assigments)
-    def buildChoreString(name: str, chore_list: str) -> str:
-        print("completed", completed)
-        for item in chore_list:
-            print(item)
-        string_list = "\n-".join(f"{completed[item][1]}-- {item.title()} -> {getCompletedEmoji(completed[item][0])}" for item in chore_list) 
-        print("worthy list, ", string_list)
-        print(chore_list)
-        return f"\n{name}: \n-{string_list}"
-
-    return "\n".join(buildChoreString(name, chore_list) for name, chore_list in assigments.items())
-
-
-
-
-def getCompletedEmoji(isDone: bool) -> str:
-    return "✅" if isDone else "☐"
 
 
 todays = generateChoreAssignments()
 sendAssignedChoresSMS(todays)
+
+run()
