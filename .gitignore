@@ -1,3 +1,4 @@
 config.env
 src/__pycache__
 src/completed.json
+src/assigned_chores.json 
