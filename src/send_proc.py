@@ -23,7 +23,7 @@ def runSchedule() -> None:
 	isDailyUpdateTime = lambda now: now.hour == 8 and now.minute == 0
 	choresArentDone = lambda lazies: len(lazies) != 0 
 
-
+	print("Starting schedule run")
 	while True:
 
 		now = datetime.datetime.now()
