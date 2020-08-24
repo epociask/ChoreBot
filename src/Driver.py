@@ -4,10 +4,9 @@ from multiprocessing import Process
 
 def runBot() -> None:
 	server_process = Process(target=runServer)
-	scheduel_process = Process(target=runSchedule)
+	schedule_process = Process(target=runSchedule)
 
 	server_process.run()
-	scheduel_process.run()
+	schedule_process.run()
 	server_process.join()
-	scheduel_process.join()
-	
+	schedule_process.join()

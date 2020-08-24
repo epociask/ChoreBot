@@ -19,7 +19,7 @@ def runSchedule() -> None:
 	global assigned
 	lazies: list = None
 	hasUpdated = notCompleted = violationSent = punishTime = False 
-	isViolationTime = lambda time: time == 0 or time % 15 == 0 or time % 30 == 0 or time % 45 == 0
+	isViolationTime = lambda now: now.minute == 0 or now.minute % 15 == 0 
 	isDailyUpdateTime = lambda now: now.hour == 8 and now.minute == 0
 	choresArentDone = lambda lazies: len(lazies) != 0 
 
@@ -40,11 +40,11 @@ def runSchedule() -> None:
 			punishTime = True 
 
 
-		if not isViolationTime(now.minute) and violationSent:
+		if not isViolationTime(now) and violationSent:
 			violationSent = False 
 
 
-		if notCompleted and isViolationTime(now.minute) and not violationSent and punishTime:
+		if notCompleted and isViolationTime(now) and not violationSent and punishTime:
 			lazies = getLazyRoommates()
 
 			if choresArentDone(lazies):
