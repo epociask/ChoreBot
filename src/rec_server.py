@@ -84,7 +84,7 @@ def deceipherMessage(message: str, phone_number: str) -> str:
 
 
 
-    
 
-if __name__ == "__main__":
-	app.run()
+def runServer():
+    global app 
+    app.run() 
