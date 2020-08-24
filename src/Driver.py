@@ -10,3 +10,4 @@ def runBot() -> None:
 	scheduel_process.run()
 	server_process.join()
 	scheduel_process.join()
+	

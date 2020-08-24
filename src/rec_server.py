@@ -6,9 +6,6 @@ import json
 import utils
 
 app = Flask(__name__)
- 
-
-
 assigned: dict = utils.readStructFromJSON("assigned_chores.json")
 completed: dict = utils.readStructFromJSON("completed.json")
 
@@ -21,6 +18,7 @@ def handleText():
     msg.body(deceipherMessage(incoming_msg, from_number))
     return str(resp)
 
+
 def findName(phone_number: str) -> str:
     for name in settings.ROOMMATES.keys():
         if settings.ROOMMATES[name] == phone_number:
@@ -28,6 +26,7 @@ def findName(phone_number: str) -> str:
 
     return None 
 
+ 
 def updateStructs(chore: str, name: str) -> str:
     global completed
     global assigned
@@ -47,6 +46,7 @@ def updateStructs(chore: str, name: str) -> str:
         utils.writeToJSON(completed, fileName="completed.json")
 
     return None
+
 
 def deceipherMessage(message: str, phone_number: str) -> str: 
     global completed
@@ -81,8 +81,6 @@ def deceipherMessage(message: str, phone_number: str) -> str:
 
 
     return "chore ID supplied does not exist"
-
-
 
 
 def runServer():

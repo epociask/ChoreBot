@@ -56,8 +56,6 @@ def runSchedule() -> None:
 				notCompleted = punishTime = shouldPunish = False 
 
 
-
-
 def getLazyRoommates() -> list:
 	completes: dict = utils.readStructFromJSON("completed.json")
 	lazy_roommates: list = []
@@ -79,14 +77,12 @@ def punish(lazy_roomates: list) -> None:
 							to=roommates[name],
 						)
 
+
 def getNameForChore(chore: str):
 	assigned: dict = utils.readStructFromJSON("assigned_chores.json")
 	for name in assigned.keys():
 		if chore in assigned[name]:
 			return name 
-
-
-
 
 
 def sendAssignedChoresSMS(assigned_chores: dict) -> None:
@@ -99,7 +95,6 @@ def sendAssignedChoresSMS(assigned_chores: dict) -> None:
 									from_=settings.TWILIO_NUMBER,
 									to=roommates[name],
 								)
-
 
 
 def getTodaysChores(dayOfWeek: int) -> list:
@@ -119,6 +114,7 @@ def getTodaysChores(dayOfWeek: int) -> list:
 def assignUID(vals: list) -> int:
 	x: int = random.randint(1, 100)
 	return x if x not in vals else assignUID(vals)
+
 
 def buildCompletedStruct(todays_chores: dict) -> dict: 
 	return {chore:[False, assignUID([]), []] for chore in todays_chores}

@@ -5,7 +5,6 @@ def writeToJSON(data_struct: dict, fileName="assigned_chores.json") -> None:
         json.dump(data_struct, fr)
 
 
-
 def readStructFromJSON(fileName: str) -> dict :
     with open(fileName, "r") as fr:
         return json.load(fr)
@@ -21,7 +20,3 @@ def buildAssignmentString(assigments: dict, completed: dict) -> str:
         return f"\n{name}: \n-{string_list}"
 
     return "\n".join(buildChoreString(name, chore_list) for name, chore_list in assigments.items())
-
-
-
-
