@@ -7,12 +7,12 @@ import utils
 import random 
 
 client = Client(settings.TWILIO_SID_TOKEN, settings.TWILIO_AUTH_TOKEN)
+chore_struct: dict = utils.readStructFromJSON("chores.json")
 roommates: dict = settings.ROOMMATES
 yesterdays_assignments = completed =  chore_struct = assigned = {}
 odd_week: bool = True 
 
 #TODO add local file caching for previous assignments to ensure no person is given same chore twice 
-chore_struct = utils.readStructFromJSON("chores.json")
 
 
 def runSchedule() -> None:
@@ -72,7 +72,7 @@ def punish(lazy_roomates: list) -> None:
 
 	for name in lazy_roomates:
 		client.messages.create(
-							body=f"DO YOUR CHORES {name}" + "!"*13,
+							body=f"DO YOUR CHORES {name.upper()}" + "!"*13,
 							from_=settings.TWILIO_NUMBER,
 							to=roommates[name],
 						)

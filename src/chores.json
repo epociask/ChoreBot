@@ -11,10 +11,11 @@
 
     "biweekly": 
     {
-        "Sim's bathroom":6, 
-        "Half bathroom":6, 
-        "Master bathroom":6,
-        "Kitchen stove": 6
+        "Sim's bathroom": 6, 
+        "Half bathroom": 6, 
+        "Master bathroom": 6,
+        "Wipe down kitchen stove": 6,
+        "Wipe down kitchen refrigerator": 6
     }
 
 } 

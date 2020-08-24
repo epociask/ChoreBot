@@ -68,7 +68,9 @@ def deceipherMessage(message: str, phone_number: str) -> str:
         if val[1] == int(chore_id):
             if key in assigned[name]:
                 print("name", name)
-                if (err := updateStructs(key, findName(phone_number))) !=  None:
+                err = updateStructs(key, findName(phone_number))
+
+                if err !=  None:
                     return err
 
                 else:
